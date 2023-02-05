@@ -1,27 +1,15 @@
+from datetime import time
+
 import numpy as np
-import random
-import numba
-from time import sleep
 from beamngpy import BeamNGpy, Scenario, Vehicle, set_up_simple_logging
-from beamngpy.sensors import Lidar, Ultrasonic
-import threading
+from beamngpy.sensors import ultrasonic
 
 SIZE = 1024
-
-@numba.jit
-def update_vehicles(beamng, vehicles, script):
-    for i in range(0, 3600, 10):
-        node = script[i]
-        t = node['t']
-        for vehicle in vehicles:
-            vehicle.ai_set_drive_power(t)
-            vehicle.update_vehicle()
-        beamng.step(1)
 
 def main():
     set_up_simple_logging()
 
-    beamng = BeamNGpy('localhost', 64256 , 'C:/Users/ayusa/OneDrive/Desktop/BeamNG.tech.v0.27.1.0/BeamNG.tech.v0.27.1.0')
+    beamng = BeamNGpy('localhost', 64256, 'C:/Users/ayusa/OneDrive/Desktop/BeamNG.tech.v0.27.1.0/BeamNG.tech.v0.27.1.0')
     beamng.open(launch=True)
 
     orig = (-769.1, 400.8, 142.8)
@@ -35,9 +23,16 @@ def main():
 
     for i in range(3600):
         node = {
+            #  Calculate the position as a sine curve that makes the vehicle
+            #  drive from left to right. The z-coordinate is not calculated in
+            #  any way because `ai_set_script` by default makes the polyline to
+            #  follow cling to the ground, meaning the z-coordinate will be
+            #  filled in automatically.
             'x': 4 * np.sin(np.radians(i)) + orig[0],
             'y': i * 0.2 + orig[1],
             'z': orig[2],
+            #  Calculate timestamps for each node such that the speed between
+            #  points has a sinusoidal variance to it.
             't': (2 * i + (np.abs(np.sin(np.radians(i)))) * 64) / 64,
         }
         script.append(node)
@@ -57,54 +52,72 @@ def main():
     vehicle4 = Vehicle('ego_vehicle4', model='etk800', license='AI')
     vehicle5 = Vehicle('ego_vehicle5', model='etk800', license='AI')
 
-    scenario.add_vehicle(vehicle, pos=(-717.121, 500.8, 142.8), rot_quat=(0, 0, 1, 0))
-    scenario.add_vehicle(vehicle1, pos=(-717.121, 495.8, 142.8), rot_quat=(0, 0, 1, 0))
-    scenario.add_vehicle(vehicle2, pos=(-717.121, 490.8, 142.8), rot_quat=(0, 0, 1, 0))
-    scenario.add_vehicle(vehicle3, pos=(-717.121, 485.8, 142.8), rot_quat=(0, 0, 1, 0))
-    scenario.add_vehicle(vehicle4, pos=(-717.121, 480.8, 142.8), rot_quat=(0, 0, 1, 0))
-    scenario.add_vehicle(vehicle5, pos=(-717.121, 475.8, 142.8), rot_quat=(0, 0, 1, 0))
+    scenario.add_vehicle(vehicle, pos=(-769.1, 400.8, 142.8), rot_quat=(0, 0, 1, 0))
+    scenario.add_vehicle(vehicle1, pos=(-769.1, 395.8, 142.8), rot_quat=(0, 0, 1, 0))
+    scenario.add_vehicle(vehicle2, pos=(-769.1, 390.8, 142.8), rot_quat=(0, 0, 1, 0))
+    scenario.add_vehicle(vehicle3, pos=(-769.1, 385.8, 142.8), rot_quat=(0, 0, 1, 0))
+    scenario.add_vehicle(vehicle4, pos=(-769.1, 380.8, 142.8), rot_quat=(0, 0, 1, 0))
+    scenario.add_vehicle(vehicle5, pos=(-769.1, 375.8, 142.8), rot_quat=(0, 0, 1, 0))
 
     scenario.make(beamng)
-    
-    vehicle.ai.set_mode('span')
-    vehicle1.ai.set_mode('chase')
-    vehicle2.ai.set_mode('chase')
-    vehicle3.ai.set_mode('chase')
-    vehicle4.ai.set_mode('chase')
-    vehicle5.ai.set_mode('chase')
 
-    vehicle.ai.drive_in_lane(True)
-    vehicle1.ai.drive_in_lane(True)
-    vehicle2.ai.drive_in_lane(True)
-    vehicle3.ai.drive_in_lane(True)
-    vehicle4.ai.drive_in_lane(True)
-    vehicle5.ai.drive_in_lane(True)
+    beamng.settings.set_deterministic(60)
 
-beamng.settings.set_deterministic(60)
+    try:
+        beamng.scenario.load(scenario)
+        vehicle.attach_sensor("ultrasonic", ultrasonic)
+        vehicle1.attach_sensor("ultrasonic", ultrasonic)
+        vehicle2.attach_sensor("ultrasonic", ultrasonic)
+        vehicle3.attach_sensor("ultrasonic", ultrasonic)
+        vehicle4.attach_sensor("ultrasonic", ultrasonic)
+        vehicle5.attach_sensor("ultrasonic", ultrasonic)
 
-try:
-    beamng.scenario.load(scenario)
-    beamng.scenario.start()
-    beamng.debug.add_spheres(sphere_coordinates, sphere_radii, sphere_colors, cling=True, offset=0.1)
-    beamng.debug.add_polyline(points, point_color, cling=True, offset=0.1)
+        beamng.scenario.start()
+        beamng.debug.add_spheres(sphere_coordinates, sphere_radii, sphere_colors, cling=True, offset=0.1)
+        beamng.debug.add_polyline(points, point_color, cling=True, offset=0.1)
+        vehicle.ai.set_script(script)
+        vehicle1.ai.set_script(script)
+        vehicle2.ai.set_script(script)
+        vehicle3.ai.set_script(script)
+        vehicle4.ai.set_script(script)
+        vehicle5.ai.set_script(script)
 
-    vehicles = [vehicle, vehicle1, vehicle2, vehicle3, vehicle4, vehicle5]
+        distance_threshold = 5.0  # meters
+        stop_time = 1.0  # seconds
 
-    lidar = Lidar('lidar', beamng, vehicle, SIZE)
-    ultrasonic = Ultrasonic('ultrasonic', beamng, vehicle, SIZE)
+        while True:
+            distance1 = vehicle1.get_sensor("ultrasonic")["distance"]
+            distance2 = vehicle2.get_sensor("ultrasonic")["distance"]
+            distance3 = vehicle3.get_sensor("ultrasonic")["distance"]
+            distance4 = vehicle4.get_sensor("ultrasonic")["distance"]
+            distance5 = vehicle5.get_sensor("ultrasonic")["distance"]
 
-    t1 = threading.Thread(target=update_vehicles, args=(beamng, vehicles, script))
-    t1.start()
+            if distance1 < distance_threshold:
+                vehicle1.ai.stop()
+                time.sleep(stop_time)
+                vehicle1.ai.resume()
+            if distance2 < distance_threshold:
+                vehicle2.ai.stop()
+                time.sleep(stop_time)
+                vehicle2.ai.resume()
+            if distance3 < distance_threshold:
+                vehicle3.ai.stop()
+                time.sleep(stop_time)
+                vehicle3.ai.resume()
+            if distance4 < distance_threshold:
+                vehicle4.ai.stop()
+                time.sleep(stop_time)
+                vehicle4.ai.resume()
+            if distance5 < distance_threshold:
+                vehicle5.ai.stop()
+                time.sleep(stop_time)
+                vehicle5.ai.resume()
 
-    while True:
-        d_lidar, _ = lidar.get_lidar()
-        d_ultrasonic, _ = ultrasonic.get_ultrasonic()
+            beamng.control.step(60)
+    finally:
+        beamng.close()
 
-        print(d_lidar)
-        print(d_ultrasonic)
-        sleep(1)
 
-except KeyboardInterrupt:
-    pass
-finally:
-    beamng.close()
+
+if __name__ == '__main__':
+    main()
