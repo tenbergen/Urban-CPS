@@ -27,11 +27,9 @@ pip install beamngpy
 **NOTE: While running the simulation, the graphics should be set to the lowest so that it runs smoothly on the PC.**
 
 **Useful Github links:
-BeamNG.py feature overview https://github.com/BeamNG/BeamNGpy/blob/master/examples/feature_overview.ipynb
-Example Lidar
-https://github.com/BeamNG/BeamNGpy/blob/master/examples/lidar_tour.py 
-Example AI- follow line
-https://github.com/BeamNG/BeamNGpy/blob/master/examples/ai_line.py**
+BeamNG.py feature overview -https://github.com/BeamNG/BeamNGpy/blob/master/examples/feature_overview.ipynb
+Example Lidar -https://github.com/BeamNG/BeamNGpy/blob/master/examples/lidar_tour.py 
+Example AI- follow line https://github.com/BeamNG/BeamNGpy/blob/master/examples/ai_line.py**
 
 How does the Simulation Work:
 The simulation is divided into three phases to simulate Collaborative Adaptive Cruise Control behavior. 
