@@ -24,16 +24,14 @@ the logo of the game will clearly indicate that it is the BeamNG.tech version.
 To install BeamNG.py on your Python IDE
 pip install beamngpy
 
-**NOTE: While running the simulation, the graphics should be set to the lowest so that it runs smoothly on the PC.
-**
+**NOTE: While running the simulation, the graphics should be set to the lowest so that it runs smoothly on the PC.**
 
 **Useful Github links:
 BeamNG.py feature overview https://github.com/BeamNG/BeamNGpy/blob/master/examples/feature_overview.ipynb
 Example Lidar
 https://github.com/BeamNG/BeamNGpy/blob/master/examples/lidar_tour.py 
 Example AI- follow line
-https://github.com/BeamNG/BeamNGpy/blob/master/examples/ai_line.py **
-
+https://github.com/BeamNG/BeamNGpy/blob/master/examples/ai_line.py**
 
 How does the Simulation Work:
 The simulation is divided into three phases to simulate Collaborative Adaptive Cruise Control behavior. 
@@ -82,8 +80,9 @@ The negotiation phase occurs when the speed of the convoy is homogeneous
 The negotiation phase follows the following steps
 Proposal - Each vehicle proposes a random speed within a predefined range.
 
-	The predefined range is determined by 
-	a.Polling sensor data to get current speed of all vehicles b.Compute Mean and Standard Deviation c.Lower Bound Range is = Mean - Standard Deviation, Upper Bound Range is = Mean + Standard Deviation
+The predefined range is determined by 
+a.Polling sensor data to get current speed of all vehicles 
+b.Compute Mean and Standard Deviation c.Lower Bound Range is = Mean - Standard Deviation, Upper Bound Range is = Mean + Standard Deviation
 
 Consensus - The average of all proposed speeds is computed 
 Adoption - Each vehicle adopts the average speed computed
