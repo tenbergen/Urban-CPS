@@ -85,3 +85,4 @@ b.Compute Mean and Standard Deviation c.Lower Bound Range is = Mean - Standard D
 Consensus - The average of all proposed speeds is computed 
 Adoption - Each vehicle adopts the average speed computed
 
+![mermaid-diagram-2023-08-23-164256](https://github.com/asigdel29/Urban-CPS/assets/64096825/e21338be-bae0-40c2-a402-7bc3d09d087f)
